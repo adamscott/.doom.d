@@ -75,3 +75,9 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+;; Default shell for Emacs
+(setq shell-file-name (executable-find "bash"))
+
+;; Local config (not in repo)
+(load! "+local.el")
