@@ -33,7 +33,6 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-one)
-(setq doom-font (font-spec :family "SFMono Nerd Font" :size (/ 16.0 (/ display-pixels-per-inch 72.0))))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -78,6 +77,14 @@
 
 ;; Default shell for Emacs
 (setq shell-file-name (executable-find "bash"))
+
+;; Relative display lines
+(setq display-line-numbers-type 'relative)
+
+;; Debugging
+(after! dap-mode
+  (require 'dap-lldb)
+  (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
 ;; Local config (not in repo)
 (load! "+local.el")
