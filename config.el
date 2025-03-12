@@ -86,5 +86,8 @@
   (require 'dap-lldb)
   (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
+;; Mouse scroll
+(setq mouse-wheel-tilt-scroll t)
+
 ;; Local config (not in repo)
 (load! "+local.el")
