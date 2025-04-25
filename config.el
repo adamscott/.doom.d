@@ -93,5 +93,12 @@
 (setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
+;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS)
+(map! :after lsp-mode
+      :map lsp-mode-map
+      :leader
+      :desc "Activates the signature"
+      "c SPC" #'lsp-signature-activate)
+
 ;; Local config (not in repo)
 (load! "+local.el")
