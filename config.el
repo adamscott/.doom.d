@@ -89,5 +89,9 @@
 ;; Mouse scroll
 (setq mouse-wheel-tilt-scroll t)
 
+;; clangd
+(setq lsp-clients-clangd-args '("-j3" "--enable-config"))
+(after! lsp-clangd (set-lsp-priority! 'clangd 2))
+
 ;; Local config (not in repo)
 (load! "+local.el")
