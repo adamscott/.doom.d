@@ -4,7 +4,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
-   '((prettier-mode . 0)
+   '((apheleia-mode . 0) (prettier-mode . 0)
      (projectile-project-compilation-cmd . "npm install && npm run build")
      (setq +format-with :none)
      (projectile-project-compilation-cmd . "make html -j4")
