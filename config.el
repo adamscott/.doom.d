@@ -100,5 +100,12 @@
       :desc "Activates the signature"
       "c SPC" #'lsp-signature-activate)
 
+(add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.cjs\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.mjs\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
+
 ;; Local config (not in repo)
 (load! "+local.el")
