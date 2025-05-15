@@ -47,3 +47,9 @@
 ;; (unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
+
+(package! lsp-biome
+  :recipe (:host github
+           :repo "cxa/lsp-biome"
+           :files ("lsp-biome.el")
+           :branch "main"))
