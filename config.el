@@ -107,14 +107,17 @@
 (add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
 
-(use-package! lsp-biome
-  :init
-  (setq lsp-biome-format-on-save t
-        lsp-biome-active-file-types (list (rx "." (or "tsx" "jsx"
-                                                      "ts" "js"
-                                                      "mts" "mjs"
-                                                      "cts" "cjs"
-                                                      "json" "jsonc")
-                                              eos))))
+;; (use-package! apheleia
+;;   :init
+;;   (use-package! lsp-biome
+;;     :init
+;;     (setq lsp-biome-format-on-save t
+;;           lsp-biome-active-file-types (list (rx "." (or "tsx" "jsx"
+;;                                                         "ts" "js"
+;;                                                         "mts" "mjs"
+;;                                                         "cts" "cjs"
+;;                                                         "json" "jsonc")
+;;                                                 eos)))))
+
 ;; Local config (not in repo)
 (load! "+local.el")
