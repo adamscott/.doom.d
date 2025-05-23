@@ -100,6 +100,9 @@
       :desc "Activates the signature"
       "c SPC" #'lsp-signature-activate)
 
+(add-to-list 'auto-mode-alist '("tsconfig.*?\\.json\\'" . jsonc-mode))
+(add-to-list 'auto-mode-alist '("jsconfig.*?\\.json\\'" . jsonc-mode))
+(add-to-list 'auto-mode-alist '("\\.jsonc\\'" . jsonc-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.cjs\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . rjsx-mode))
