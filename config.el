@@ -100,15 +100,28 @@
       :desc "Activates the signature"
       "c SPC" #'lsp-signature-activate)
 
-(add-to-list 'auto-mode-alist '("tsconfig.*?\\.json\\'" . jsonc-mode))
-(add-to-list 'auto-mode-alist '("jsconfig.*?\\.json\\'" . jsonc-mode))
-(add-to-list 'auto-mode-alist '("\\.jsonc\\'" . jsonc-mode))
+(defun asc-add-jsonc-auto-modes ()
+  (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
+                      ("tsconfig.*?\\.json\\'" . jsonc-mode)
+                      ("jsconfig.*?\\.json\\'" . jsonc-mode))))
+    (dolist (auto-mode auto-modes)
+      (setq auto-mode-alist (delete auto-mode auto-mode-alist))
+      (add-to-list 'auto-mode-alist auto-mode))))
+
+(asc-add-jsonc-auto-modes)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.cjs\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . rjsx-mode))
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
+
+;; Override the new hooks by json-mode
+(defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
+  (run-at-time "0.01s" nil
+               (lambda ()
+                 (asc-add-jsonc-auto-modes))))
+(add-variable-watcher 'json-mode-auto-mode-list #'asc-json-mode-auto-mode-list-variable-watcher)
 
 (after! lsp-mode
   ;; Add missing deno.enablePaths
