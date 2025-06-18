@@ -93,6 +93,11 @@
 (setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
+;; Sibling files (including Objective-C .mm files)
+(add-hook! 'objc-mode-hook
+  (setq find-sibling-rules '(("/\\([^/]+\\)\\.h\\(h\\|pp\\)?\\'" "\\1.m\\(m\\)?\\'")
+                             ("/\\([^/]+\\)\\.m\\(m\\)?\\'" "\\1.h\\(h\\|pp\\)?\\'"))))
+
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS)
 (map! :after lsp-mode
       :map lsp-mode-map
