@@ -48,8 +48,19 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
 
-;; (package! lsp-biome
+(package! lsp-biome
+  :recipe (:host github
+           :repo "cxa/lsp-biome"
+           :files ("lsp-biome.el")
+           :branch "main"))
+
+;; (package! vue-mode)
+
+;; (package! vue-ts-mode
 ;;   :recipe (:host github
-;;            :repo "cxa/lsp-biome"
-;;            :files ("lsp-biome.el")
+;;            :repo "8uff3r/vue-ts-mode"
+;;            :files ("vue-ts-mode.el")
 ;;            :branch "main"))
+
+(package! sidecar-locals)
+

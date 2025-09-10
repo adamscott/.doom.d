@@ -121,6 +121,10 @@
 (add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
 
+;; ;; Override apheleia-formatters for biome
+;; (after! apheleia
+;;   (setf (alist-get 'biome apheleia-formatters) '("apheleia-npx" "biome" "format" "--write" "--stdin-file-path" filepath)))
+
 ;; Override the new hooks by json-mode
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
   (run-at-time "0.01s" nil
@@ -160,6 +164,46 @@
         ;; Return t to indicate that the notification is handled.
         t)))
   (advice-add 'lsp--on-notification :before-until #'asc-lsp-ignore-notifications-advice))
+
+;; Vue.js
+;; (add-hook 'vue-mode-hook #'lsp!)
+
+;; (setq treesit-language-source-alist
+;;       '((vue "https://github.com/ikatyang/tree-sitter-vue")
+;;         (css "https://github.com/tree-sitter/tree-sitter-css")
+;;         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+;;         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")))
+
+;; https://github.com/emacs-lsp/lsp-mode/issues/4838#issuecomment-3198461412
+;; --- Configure Volar for Hybrid Mode (not necessary since my PR has been merged as it's already the default) ---
+(after! lsp-volar
+  ;; Disable deprecated and discontinued take over mode
+  (setq lsp-volar-take-over-mode nil)
+  ;; Configure lsp-mode for Vue 3 Hybrid Mode
+  (setq lsp-volar-hybrid-mode t))
+
+;; --- Configure ts-ls to activate for .vue files ---
+(after! lsp-mode
+  ;; Starts lsp-volar as an add-on to ts-ls
+  (setq lsp-volar-as-add-on t)
+
+  ;; 1. Configure ts-ls to use the Vue plugin for context.
+  (setq lsp-clients-typescript-plugins
+        (vector
+         `(:name "@vue/typescript-plugin"
+           :location "/usr/lib/node_modules/@vue/language-server"
+           :languages ["vue"])))
+
+  ;; 2. Advise the ts-ls activation function to recognize .vue files.
+  (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
+              (lambda (orig-fn filename &rest args)
+                (message "Checking activation for: %s" filename) ; Debug message
+                (or (string-match-p "\\.vue\\'" filename)
+                    (apply orig-fn filename args)))))
+
+(use-package! sidecar-locals
+              :init
+              (sidecar-locals-mode))
 
 ;; Local config (not in repo)
 (load! "+local.el")
