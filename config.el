@@ -201,6 +201,13 @@
                 (or (string-match-p "\\.vue\\'" filename)
                     (apply orig-fn filename args)))))
 
+;; Make sure these classic modes stay.
+(add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
+(add-to-list 'major-mode-remap-alist '(c++-mode . c++-mode))
+(add-to-list 'major-mode-remap-alist 
+             '(c-or-c++-mode . c-or-c++-mode))
+
+;; Sidecar-locals
 (use-package! sidecar-locals
               :init
               (sidecar-locals-mode))
