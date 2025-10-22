@@ -76,7 +76,11 @@
 ;; they are implemented.
 
 ;; Default shell for Emacs
-(setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))
+(if (featurep :system 'macos) 
+  (progn
+    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
+  (progn
+    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
 
 ;; Relative display lines
 (setq display-line-numbers-type 'relative)
