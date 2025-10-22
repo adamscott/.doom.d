@@ -213,8 +213,8 @@
 
 ;; Sidecar-locals
 (use-package! sidecar-locals
-              :init
-              (sidecar-locals-mode))
+  :init
+  (sidecar-locals-mode))
 
 ;; Local config (not in repo)
 (load! "+local.el")
