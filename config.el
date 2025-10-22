@@ -89,6 +89,10 @@
 ;; Mouse scroll
 (setq mouse-wheel-tilt-scroll t)
 
+;; Maximize on startup
+(add-hook! 'emacs-startup-hook
+  (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
+
 ;; clangd
 (setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
