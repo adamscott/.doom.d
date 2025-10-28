@@ -75,10 +75,13 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+;; Disable Apheleia for emacs-lisp.
+(add-to-list '+format-on-save-disabled-modes 'emacs-lisp-mode)
+
 ;; Default shell for Emacs.
 (if (featurep :system 'macos) 
-    (progn
-      (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
+  (progn
+    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
   (progn
     (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
 
