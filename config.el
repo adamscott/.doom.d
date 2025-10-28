@@ -100,6 +100,27 @@
 (add-hook! 'emacs-startup-hook
   (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
 
+;; Add `SPC o c` shortcut.
+(defun +asc-compilation/toggle ()
+  (interactive)
+  (let ((buffer (get-buffer "*compilation*")))
+    (if buffer
+      (if (+popup-buffer-p buffer)
+        (+popup/close (get-buffer-window buffer) 'force)
+        (+popup-buffer buffer))
+      (message "*compilation* doesn't exist yet."))))
+
+      ;; (let ((window (get-buffer-window buffer))
+      ;;        (windows (+popup-windows)))
+      ;;   (if (+popup-buffer-p buffer)
+      ;;     (if window
+      ;;       (+popup/close window)
+      ;;       (get-buffer-window buffer))
+      ;;     (+popup-buffer buffer))))))
+
+(map! :leader
+  (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
+
 ;; clangd
 (setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
