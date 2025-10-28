@@ -75,25 +75,25 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-;; Default shell for Emacs
+;; Default shell for Emacs.
 (if (featurep :system 'macos) 
-  (progn
-    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
+    (progn
+      (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
   (progn
     (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
 
-;; Relative display lines
+;; Relative display lines.
 (setq display-line-numbers-type 'relative)
 
-;; Debugging
+;; Debugging.
 (after! dap-mode
   (require 'dap-lldb)
   (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
-;; Mouse scroll
+;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
 
-;; Maximize on startup
+;; Maximize on startup.
 (add-hook! 'emacs-startup-hook
   (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
 
@@ -101,7 +101,7 @@
 (setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
-;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS)
+;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
 (map! :after lsp-mode
       :map lsp-mode-map
       :leader
@@ -128,7 +128,7 @@
 ;; (after! apheleia
 ;;   (setf (alist-get 'biome apheleia-formatters) '("apheleia-npx" "biome" "format" "--write" "--stdin-file-path" filepath)))
 
-;; Override the new hooks by json-mode
+;; Override the new hooks by json-mode.
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
   (run-at-time "0.01s" nil
                (lambda ()
@@ -210,10 +210,10 @@
 (add-to-list 'major-mode-remap-alist 
              '(c-or-c++-mode . c-or-c++-mode))
 
-;; Sidecar-locals
+;; Sidecar-locals.
 (use-package! sidecar-locals
   :init
   (sidecar-locals-mode))
 
-;; Local config (not in repo)
+;; Local config (not in repo).
 (load! "+local.el")
