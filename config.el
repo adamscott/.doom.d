@@ -124,10 +124,6 @@
 (add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
 
-;; ;; Override apheleia-formatters for biome
-;; (after! apheleia
-;;   (setf (alist-get 'biome apheleia-formatters) '("apheleia-npx" "biome" "format" "--write" "--stdin-file-path" filepath)))
-
 ;; Override the new hooks by json-mode.
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
   (run-at-time "0.01s" nil
@@ -135,38 +131,38 @@
                  (asc-add-jsonc-auto-modes))))
 (add-variable-watcher 'json-mode-auto-mode-list #'asc-json-mode-auto-mode-list-variable-watcher)
 
-(after! lsp-mode
-  ;; Add missing deno.enablePaths
-  (defcustom asc-lsp-clients-deno-enable-paths nil
-    "Controls if the Deno Language Server is enabled for only specific paths of the workspace folder."
-    :group 'lsp-deno
-    :risky t
-    :type '(repeat string))
-  (defcustom asc-lsp-clients-deno-disable-paths nil
-    "Controls if the Deno Language Server is disabled for only specific paths of the workspace folder."
-    :group 'lsp-deno
-    :risky t
-    :type '(repeat string))
-  (defun asc-lsp-clients-deno--make-init-options-advice (original-func &rest args)
-    "Add missing parameter."
-    (let ((new-options (plist-put (apply original-func args) :enablePaths asc-lsp-clients-deno-enable-paths)))
-      new-options))
-  (advice-add 'lsp-clients-deno--make-init-options :around #'asc-lsp-clients-deno--make-init-options-advice)
+;; (after! lsp-mode
+;;   ;; Add missing deno.enablePaths.
+;;   (defcustom asc-lsp-clients-deno-enable-paths nil
+;;     "Controls if the Deno Language Server is enabled for only specific paths of the workspace folder."
+;;     :group 'lsp-deno
+;;     :risky t
+;;     :type '(repeat string))
+;;   (defcustom asc-lsp-clients-deno-disable-paths nil
+;;     "Controls if the Deno Language Server is disabled for only specific paths of the workspace folder."
+;;     :group 'lsp-deno
+;;     :risky t
+;;     :type '(repeat string))
+;;   (defun asc-lsp-clients-deno--make-init-options-advice (original-func &rest args)
+;;     "Add missing parameter."
+;;     (let ((new-options (plist-put (apply original-func args) :enablePaths asc-lsp-clients-deno-enable-paths)))
+;;       new-options))
+;;   (advice-add 'lsp-clients-deno--make-init-options :around #'asc-lsp-clients-deno--make-init-options-advice)
 
-  ;; Ignore some notifications.
-  (defcustom asc-lsp-ignore-notification-rules '("deno/didRefreshDenoConfigurationTree" "deno/didChangeDenoConfiguration" "deno/didUpgradeCheck")
-    "Notifications to ignore."
-    :group 'lsp-mode
-    :risky t
-    :type '(repeat string))
-  (defun asc-lsp-ignore-notifications-advice (_workspace notification)
-    "Ignore deno notification"
-    (when (member (plist-get notification :method) asc-lsp-ignore-notification-rules)
-      (progn
-        (lsp--info (concat "Ignored '" (plist-get notification :method) "' notification"))
-        ;; Return t to indicate that the notification is handled.
-        t)))
-  (advice-add 'lsp--on-notification :before-until #'asc-lsp-ignore-notifications-advice))
+;;   ;; Ignore some notifications.
+;;   (defcustom asc-lsp-ignore-notification-rules '("deno/didRefreshDenoConfigurationTree" "deno/didChangeDenoConfiguration" "deno/didUpgradeCheck")
+;;     "Notifications to ignore."
+;;     :group 'lsp-mode
+;;     :risky t
+;;     :type '(repeat string))
+;;   (defun asc-lsp-ignore-notifications-advice (_workspace notification)
+;;     "Ignore deno notification"
+;;     (when (member (plist-get notification :method) asc-lsp-ignore-notification-rules)
+;;       (progn
+;;         (lsp--info (concat "Ignored '" (plist-get notification :method) "' notification"))
+;;         ;; Return t to indicate that the notification is handled.
+;;         t)))
+;;   (advice-add 'lsp--on-notification :before-until #'asc-lsp-ignore-notifications-advice))
 
 ;; Vue.js
 ;; (add-hook 'vue-mode-hook #'lsp!)
