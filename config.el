@@ -108,7 +108,10 @@
       (if (+popup-buffer-p buffer)
         (+popup/close (get-buffer-window buffer) 'force)
         (+popup-buffer buffer)
-        (switch-to-buffer buffer))
+        (let ((window (get-buffer-window buffer)))
+          (if window
+            (select-window window)
+            (message "couldn't find window of *compilation*"))))
       (message "*compilation* doesn't exist yet."))))
 
       ;; (let ((window (get-buffer-window buffer))
