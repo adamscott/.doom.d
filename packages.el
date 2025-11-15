@@ -63,4 +63,5 @@
 ;;            :branch "main"))
 
 (package! sidecar-locals)
+(package! mise)
 

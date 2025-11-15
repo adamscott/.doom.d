@@ -239,5 +239,10 @@
   :init
   (sidecar-locals-mode))
 
+;; mise.el
+(use-package! mise
+  :init
+  (global-mise-mode))
+
 ;; Local config (not in repo).
 (load! "+local.el")
