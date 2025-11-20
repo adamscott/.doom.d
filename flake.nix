@@ -1,10 +1,9 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable } @ inputs:
+  outputs = { self, nixpkgs } @ inputs:
     let
       lib = nixpkgs.lib;
       forAllSystems = lib.genAttrs lib.systems.flakeExposed;
@@ -16,36 +15,30 @@
         ...
       }:
         let
+          _localEl = pkgs.writeTextFile {
+            name = "+local.el";
+            text = localEl;
+          };
+          fs = pkgs.lib.fileset;
         in
-        pkgs.symlinkJoin {
+        pkgs.stdenvNoCC.mkDerivation {
           name = "DOOM Emacs config";
-          paths = [
-            (pkgs.writeTextFile {
-              name = "init.el";
-              text = builtins.readFile ./init.el;
-            })
-            (pkgs.writeTextFile {
-              name = "config.el";
-              text = builtins.readFile ./config.el;
-            })
-            (pkgs.writeTextFile {
-              name = "packages.el";
-              text = builtins.readFile ./packages.el;
-            })
-            (pkgs.writeTextFile {
-              name = "custom.el";
-              text = builtins.readFile ./custom.el;
-            })
-            (pkgs.writeTextFile {
-              name = "+local.el";
-              text = localEl;
-            })
-          ];
+          src = fs.toSource {
+            root = ./.;
+            fileset = ./.;
+          };
+          installPhase = ''
+            mkdir -p $out
+            install init.el -T $out/init.el
+            install config.el -T $out/config.el
+            install packages.el -T $out/packages.el
+            install custom.el -T $out/custom.el
+            install ${_localEl} -T $out/+local.el
+          '';
         };
       packages = forAllSystems(system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          unstable-pkgs = nixpkgs-unstable.legacyPackages.${system};
           selfPackages = self.outputs.packages.${system};
         in
         {
