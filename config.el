@@ -126,7 +126,6 @@
   (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
 
 ;; clangd
-(setq lsp-clients-clangd-args '("-j=3" "--enable-config"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
