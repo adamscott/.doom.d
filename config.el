@@ -158,6 +158,11 @@
                  (asc-add-jsonc-auto-modes))))
 (add-variable-watcher 'json-mode-auto-mode-list #'asc-json-mode-auto-mode-list-variable-watcher)
 
+;; Add SCons files to 'auto-mode-alist.
+(add-to-list 'auto-mode-alist '("\\SConstruct" . python-mode))
+(add-to-list 'auto-mode-alist '("\\SConscript" . python-mode))
+(add-to-list 'auto-mode-alist '("\\SCsub" . python-mode)) ;; Godot variant.
+
 ;; (after! lsp-mode
 ;;   ;; Add missing deno.enablePaths.
 ;;   (defcustom asc-lsp-clients-deno-enable-paths nil
@@ -203,10 +208,10 @@
 ;; https://github.com/emacs-lsp/lsp-mode/issues/4838#issuecomment-3198461412
 ;; --- Configure Volar for Hybrid Mode (not necessary since my PR has been merged as it's already the default) ---
 (after! lsp-volar
-  ;; Disable deprecated and discontinued take over mode
-  (setq lsp-volar-take-over-mode nil)
-  ;; Configure lsp-mode for Vue 3 Hybrid Mode
-  (setq lsp-volar-hybrid-mode t))
+    ;; Disable deprecated and discontinued take over mode
+    (setq lsp-volar-take-over-mode nil)
+    ;; Configure lsp-mode for Vue 3 Hybrid Mode
+    (setq lsp-volar-hybrid-mode t))
 
 ;; --- Configure ts-ls to activate for .vue files ---
 (after! lsp-mode
