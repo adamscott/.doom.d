@@ -238,10 +238,14 @@
 (add-to-list 'major-mode-remap-alist 
              '(c-or-c++-mode . c-or-c++-mode))
 
+;; Dired custom maps.
+(map! :map dired-mode-map
+    "C-Q" #'dired-do-query-replace-regexp)
+
 ;; Sidecar-locals.
 (use-package! sidecar-locals
-  :init
-  (sidecar-locals-mode))
+    :init
+    (sidecar-locals-mode))
 
 ;; mise.el
 (use-package! mise
