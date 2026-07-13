@@ -80,68 +80,68 @@
 
 ;; Default shell for Emacs.
 (if (featurep :system 'macos) 
-  (progn
-    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
-  (progn
-    (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
+    (progn
+        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
+    (progn
+        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
 
 ;; Relative display lines.
 (setq display-line-numbers-type 'relative)
 
 ;; Debugging.
 (after! dap-mode
-  (require 'dap-lldb)
-  (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
+    (require 'dap-lldb)
+    (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
 ;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
 
 ;; Maximize on startup.
 (add-hook! 'emacs-startup-hook
-  (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
+    (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
 
 ;; Add `SPC o c` shortcut.
 (defun +asc-compilation/toggle ()
-  (interactive)
-  (let ((buffer (get-buffer "*compilation*")))
-    (if buffer
-      (if (+popup-buffer-p buffer)
-        (+popup/close (get-buffer-window buffer) 'force)
-        (+popup-buffer buffer)
-        (let ((window (get-buffer-window buffer)))
-          (if window
-            (select-window window)
-            (message "couldn't find window of *compilation*"))))
-      (message "*compilation* doesn't exist yet."))))
+    (interactive)
+    (let ((buffer (get-buffer "*compilation*")))
+        (if buffer
+            (if (+popup-buffer-p buffer)
+                (+popup/close (get-buffer-window buffer) 'force)
+                (+popup-buffer buffer)
+                (let ((window (get-buffer-window buffer)))
+                    (if window
+                        (select-window window)
+                        (message "couldn't find window of *compilation*"))))
+            (message "*compilation* doesn't exist yet."))))
 
-      ;; (let ((window (get-buffer-window buffer))
-      ;;        (windows (+popup-windows)))
-      ;;   (if (+popup-buffer-p buffer)
-      ;;     (if window
-      ;;       (+popup/close window)
-      ;;       (get-buffer-window buffer))
-      ;;     (+popup-buffer buffer))))))
+;; (let ((window (get-buffer-window buffer))
+;;        (windows (+popup-windows)))
+;;   (if (+popup-buffer-p buffer)
+;;     (if window
+;;       (+popup/close window)
+;;       (get-buffer-window buffer))
+;;     (+popup-buffer buffer))))))
 
 (map! :leader
-  (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
+    (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
 
 ;; clangd
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
 (map! :after lsp-mode
-      :map lsp-mode-map
-      :leader
-      :desc "Activates the signature"
-      "c SPC" #'lsp-signature-activate)
+    :map lsp-mode-map
+    :leader
+    :desc "Activates the signature"
+    "c SPC" #'lsp-signature-activate)
 
 (defun asc-add-jsonc-auto-modes ()
-  (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
-                      ("tsconfig.*?\\.json\\'" . jsonc-mode)
-                      ("jsconfig.*?\\.json\\'" . jsonc-mode))))
-    (dolist (auto-mode auto-modes)
-      (setq auto-mode-alist (delete auto-mode auto-mode-alist))
-      (add-to-list 'auto-mode-alist auto-mode))))
+    (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
+                           ("tsconfig.*?\\.json\\'" . jsonc-mode)
+                           ("jsconfig.*?\\.json\\'" . jsonc-mode))))
+        (dolist (auto-mode auto-modes)
+            (setq auto-mode-alist (delete auto-mode auto-mode-alist))
+            (add-to-list 'auto-mode-alist auto-mode))))
 
 (asc-add-jsonc-auto-modes)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
@@ -153,15 +153,18 @@
 
 ;; Override the new hooks by json-mode.
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
-  (run-at-time "0.01s" nil
-               (lambda ()
-                 (asc-add-jsonc-auto-modes))))
+    (run-at-time "0.01s" nil
+        (lambda ()
+            (asc-add-jsonc-auto-modes))))
 (add-variable-watcher 'json-mode-auto-mode-list #'asc-json-mode-auto-mode-list-variable-watcher)
 
 ;; Add SCons files to 'auto-mode-alist.
 (add-to-list 'auto-mode-alist '("\\SConstruct" . python-mode))
 (add-to-list 'auto-mode-alist '("\\SConscript" . python-mode))
 (add-to-list 'auto-mode-alist '("\\SCsub" . python-mode)) ;; Godot variant.
+
+;; Add GDScript files to 'auto-mode-alist.
+(add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode)) ;; Add gdscript-formatter.
 
 ;; (after! lsp-mode
 ;;   ;; Add missing deno.enablePaths.
@@ -215,28 +218,28 @@
 
 ;; --- Configure ts-ls to activate for .vue files ---
 (after! lsp-mode
-  ;; Starts lsp-volar as an add-on to ts-ls
-  (setq lsp-volar-as-add-on t)
+    ;; Starts lsp-volar as an add-on to ts-ls
+    (setq lsp-volar-as-add-on t)
 
-  ;; 1. Configure ts-ls to use the Vue plugin for context.
-  (setq lsp-clients-typescript-plugins
+    ;; 1. Configure ts-ls to use the Vue plugin for context.
+    (setq lsp-clients-typescript-plugins
         (vector
-         `(:name "@vue/typescript-plugin"
-           :location "/usr/lib/node_modules/@vue/language-server"
-           :languages ["vue"])))
+            `(:name "@vue/typescript-plugin"
+                 :location "/usr/lib/node_modules/@vue/language-server"
+                 :languages ["vue"])))
 
-  ;; 2. Advise the ts-ls activation function to recognize .vue files.
-  (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
-              (lambda (orig-fn filename &rest args)
-                (message "Checking activation for: %s" filename) ; Debug message
-                (or (string-match-p "\\.vue\\'" filename)
-                    (apply orig-fn filename args)))))
+    ;; 2. Advise the ts-ls activation function to recognize .vue files.
+    (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
+        (lambda (orig-fn filename &rest args)
+            (message "Checking activation for: %s" filename) ; Debug message
+            (or (string-match-p "\\.vue\\'" filename)
+                (apply orig-fn filename args)))))
 
 ;; Make sure these classic modes stay.
 (add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
 (add-to-list 'major-mode-remap-alist '(c++-mode . c++-mode))
 (add-to-list 'major-mode-remap-alist 
-             '(c-or-c++-mode . c-or-c++-mode))
+    '(c-or-c++-mode . c-or-c++-mode))
 
 ;; Dired custom maps.
 (map! :map dired-mode-map
@@ -249,8 +252,47 @@
 
 ;; mise.el
 (use-package! mise
-  :init
-  (global-mise-mode))
+    :init
+    (global-mise-mode))
+
+;; Fish.
+(use-package! fish-mode)
+
+;; Corfu.
+(after! corfu
+    (setq corfu-auto-delay 0.2))
 
 ;; Local config (not in repo).
 (load! "+local.el")
+
+;; Apheleia formatters.
+;; (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
+;; (set-formatter! 'djlint-jinja `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "--profile=jinja" "-" "--reformat") :modes '(web-mode))
+(set-formatter! 'djlint (lambda ()
+                            "Return the djlint parameters."
+                            ))
+(set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
+(set-formatter! 'djlint-jinja `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "--profile=jinja" "-" "--reformat") :modes '(web-mode))
+(set-formatter! 'gdscript-formatter '("gdscript-formatter" "--reorder-code" "--stdout") :modes '(gdscript-mode gdscript-ts-mode))
+;; (set-formatter! 'eslint `(,@(let ((eslint-command '("eslint" "--stdin" "--stdin-filename" filepath "--fix-dry-run" "--format" "json")))
+;;                                 (if (executable-find "eslint")
+;;                                     eslint-command
+;;                                     (if (executable-find "pnpm")
+;;                                         (append '("pnpm" "exec") eslint-command)
+;;                                         (append '("npm" "exec") eslint-command)))))
+;;   :modes '(javascript-mode javascript-ts-mode typescript-mode typescript-ts-mode))
+
+(defun apheleia-mode-alist-remove-after-init (symbol newval operation where)
+    "Remove some values from 'apheleia-formatters"
+    (when (and (eq operation 'set) (not (eq (assq 'gdscript-mode newval) nil)))
+        (remove-variable-watcher symbol #'apheleia-mode-alist-remove-after-init)
+        (let ((finalvalue (assq-delete-all 'gdscript-mode (assq-delete-all 'gdscript-ts-mode newval))))
+            (progn
+                (add-to-list 'finalvalue '(gdscript-mode . gdscript-formatter))
+                (add-to-list 'finalvalue '(gdscript-ts-mode . gdscript-formatter))
+                (run-with-timer 0 nil
+                    (lambda ()
+                        (set symbol finalvalue)))))))
+(add-variable-watcher 'apheleia-mode-alist #'apheleia-mode-alist-remove-after-init)
+
+(use-package! uv)
