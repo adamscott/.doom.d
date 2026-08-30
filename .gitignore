@@ -3,4 +3,5 @@
 *.log
 tmp/
 
-+local.el
+/+local.el
+/+local.el.template
