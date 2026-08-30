@@ -208,32 +208,38 @@
 ;;         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
 ;;         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")))
 
-;; https://github.com/emacs-lsp/lsp-mode/issues/4838#issuecomment-3198461412
-;; --- Configure Volar for Hybrid Mode (not necessary since my PR has been merged as it's already the default) ---
-(after! lsp-volar
-    ;; Disable deprecated and discontinued take over mode
-    (setq lsp-volar-take-over-mode nil)
-    ;; Configure lsp-mode for Vue 3 Hybrid Mode
-    (setq lsp-volar-hybrid-mode t))
+;; ;; https://github.com/emacs-lsp/lsp-mode/issues/4838#issuecomment-3198461412
+;; ;; --- Configure Volar for Hybrid Mode (not necessary since my PR has been merged as it's already the default) ---
+;; (after! lsp-volar
+;;     ;; Disable deprecated and discontinued take over mode
+;;     (setq lsp-volar-take-over-mode nil)
+;;     ;; Configure lsp-mode for Vue 3 Hybrid Mode
+;;     (setq lsp-volar-hybrid-mode t))
 
-;; --- Configure ts-ls to activate for .vue files ---
+;; ;; --- Configure ts-ls to activate for .vue files ---
+;; (after! lsp-mode
+;;     ;; Starts lsp-volar as an add-on to ts-ls
+;;     (setq lsp-volar-as-add-on t)
+
+;;     ;; 1. Configure ts-ls to use the Vue plugin for context.
+;;     (setq lsp-clients-typescript-plugins
+;;         (vector
+;;             `(:name "@vue/typescript-plugin"
+;;                  :location "/usr/lib/node_modules/@vue/language-server"
+;;                  :languages ["vue"])))
+
+;;     ;; 2. Advise the ts-ls activation function to recognize .vue files.
+;;     (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
+;;         (lambda (orig-fn filename &rest args)
+;;             (message "Checking activation for: %s" filename) ; Debug message
+;;             (or (string-match-p "\\.vue\\'" filename)
+;;                 (apply orig-fn filename args)))))
+
 (after! lsp-mode
-    ;; Starts lsp-volar as an add-on to ts-ls
-    (setq lsp-volar-as-add-on t)
-
-    ;; 1. Configure ts-ls to use the Vue plugin for context.
-    (setq lsp-clients-typescript-plugins
-        (vector
-            `(:name "@vue/typescript-plugin"
-                 :location "/usr/lib/node_modules/@vue/language-server"
-                 :languages ["vue"])))
-
-    ;; 2. Advise the ts-ls activation function to recognize .vue files.
-    (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
-        (lambda (orig-fn filename &rest args)
-            (message "Checking activation for: %s" filename) ; Debug message
-            (or (string-match-p "\\.vue\\'" filename)
-                (apply orig-fn filename args)))))
+    ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
+    (lsp-dependency 'typescript
+        '(:npm :package "typescript@<7"
+             :path "tsserver")))
 
 ;; Make sure these classic modes stay.
 (add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
@@ -281,6 +287,30 @@
 ;;                                         (append '("pnpm" "exec") eslint-command)
 ;;                                         (append '("npm" "exec") eslint-command)))))
 ;;   :modes '(javascript-mode javascript-ts-mode typescript-mode typescript-ts-mode))
+(set-formatter! 'prettier-vue '("apheleia-npx" "prettier" "--stdin-filepath" filepath "--parser=vue"
+                                   (when apheleia-formatters-respect-indent-level
+                                       (unless
+                                           (or
+                                               (cl-loop for file in
+                                                   '(".prettierrc" ".prettierrc.json"
+                                                        ".prettierrc.yml" ".prettierrc.yaml"
+                                                        ".prettierrc.json5" ".prettierrc.js"
+                                                        "prettier.config.js" ".prettierrc.mjs"
+                                                        "prettier.config.mjs" ".prettierrc.cjs"
+                                                        "prettier.config.cjs" ".prettierrc.toml")
+                                                   if
+                                                   (locate-dominating-file default-directory file)
+                                                   return t)
+                                               (when-let*
+                                                   ((pkg
+                                                        (locate-dominating-file default-directory
+                                                            "package.json")))
+                                                   (require 'json)
+                                                   (let ((json-key-type 'alist))
+                                                       (assq 'prettier
+                                                           (json-read-file
+                                                               (expand-file-name "package.json" pkg))))))
+                                           (apheleia-formatters-indent "--use-tabs" "--tab-width")))))
 
 (defun apheleia-mode-alist-remove-after-init (symbol newval operation where)
     "Remove some values from 'apheleia-formatters"
