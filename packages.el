@@ -67,3 +67,4 @@
 (package! fish-mode)
 (package! typst-ts-mode :recipe (:host codeberg :repo "meow_king/typst-ts-mode"))
 (package! uv :recipe (:host github :repo "johannes-mueller/uv.el"))
+(package! exec-path-from-shell)

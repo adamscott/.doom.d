@@ -81,9 +81,9 @@
 ;; Default shell for Emacs.
 (if (featurep :system 'macos) 
     (progn
-        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh"))))
-    (progn
-        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))))
+        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh")))
+        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))
+        (setq doom-symbol-font "Apple Symbols")))
 
 ;; Relative display lines.
 (setq display-line-numbers-type 'relative)
@@ -100,6 +100,9 @@
 (add-hook! 'emacs-startup-hook
     (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
 
+;; Lisp formatting
+(setq lisp-indent-function #'common-lisp-indent-function)
+
 ;; Add `SPC o c` shortcut.
 (defun +asc-compilation/toggle ()
     (interactive)
@@ -113,14 +116,6 @@
                         (select-window window)
                         (message "couldn't find window of *compilation*"))))
             (message "*compilation* doesn't exist yet."))))
-
-;; (let ((window (get-buffer-window buffer))
-;;        (windows (+popup-windows)))
-;;   (if (+popup-buffer-p buffer)
-;;     (if window
-;;       (+popup/close window)
-;;       (get-buffer-window buffer))
-;;     (+popup-buffer buffer))))))
 
 (map! :leader
     (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
@@ -166,75 +161,6 @@
 ;; Add GDScript files to 'auto-mode-alist.
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode)) ;; Add gdscript-formatter.
 
-;; (after! lsp-mode
-;;   ;; Add missing deno.enablePaths.
-;;   (defcustom asc-lsp-clients-deno-enable-paths nil
-;;     "Controls if the Deno Language Server is enabled for only specific paths of the workspace folder."
-;;     :group 'lsp-deno
-;;     :risky t
-;;     :type '(repeat string))
-;;   (defcustom asc-lsp-clients-deno-disable-paths nil
-;;     "Controls if the Deno Language Server is disabled for only specific paths of the workspace folder."
-;;     :group 'lsp-deno
-;;     :risky t
-;;     :type '(repeat string))
-;;   (defun asc-lsp-clients-deno--make-init-options-advice (original-func &rest args)
-;;     "Add missing parameter."
-;;     (let ((new-options (plist-put (apply original-func args) :enablePaths asc-lsp-clients-deno-enable-paths)))
-;;       new-options))
-;;   (advice-add 'lsp-clients-deno--make-init-options :around #'asc-lsp-clients-deno--make-init-options-advice)
-
-;;   ;; Ignore some notifications.
-;;   (defcustom asc-lsp-ignore-notification-rules '("deno/didRefreshDenoConfigurationTree" "deno/didChangeDenoConfiguration" "deno/didUpgradeCheck")
-;;     "Notifications to ignore."
-;;     :group 'lsp-mode
-;;     :risky t
-;;     :type '(repeat string))
-;;   (defun asc-lsp-ignore-notifications-advice (_workspace notification)
-;;     "Ignore deno notification"
-;;     (when (member (plist-get notification :method) asc-lsp-ignore-notification-rules)
-;;       (progn
-;;         (lsp--info (concat "Ignored '" (plist-get notification :method) "' notification"))
-;;         ;; Return t to indicate that the notification is handled.
-;;         t)))
-;;   (advice-add 'lsp--on-notification :before-until #'asc-lsp-ignore-notifications-advice))
-
-;; Vue.js
-;; (add-hook 'vue-mode-hook #'lsp!)
-
-;; (setq treesit-language-source-alist
-;;       '((vue "https://github.com/ikatyang/tree-sitter-vue")
-;;         (css "https://github.com/tree-sitter/tree-sitter-css")
-;;         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-;;         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")))
-
-;; ;; https://github.com/emacs-lsp/lsp-mode/issues/4838#issuecomment-3198461412
-;; ;; --- Configure Volar for Hybrid Mode (not necessary since my PR has been merged as it's already the default) ---
-;; (after! lsp-volar
-;;     ;; Disable deprecated and discontinued take over mode
-;;     (setq lsp-volar-take-over-mode nil)
-;;     ;; Configure lsp-mode for Vue 3 Hybrid Mode
-;;     (setq lsp-volar-hybrid-mode t))
-
-;; ;; --- Configure ts-ls to activate for .vue files ---
-;; (after! lsp-mode
-;;     ;; Starts lsp-volar as an add-on to ts-ls
-;;     (setq lsp-volar-as-add-on t)
-
-;;     ;; 1. Configure ts-ls to use the Vue plugin for context.
-;;     (setq lsp-clients-typescript-plugins
-;;         (vector
-;;             `(:name "@vue/typescript-plugin"
-;;                  :location "/usr/lib/node_modules/@vue/language-server"
-;;                  :languages ["vue"])))
-
-;;     ;; 2. Advise the ts-ls activation function to recognize .vue files.
-;;     (advice-add 'lsp-typescript-javascript-tsx-jsx-activate-p :around
-;;         (lambda (orig-fn filename &rest args)
-;;             (message "Checking activation for: %s" filename) ; Debug message
-;;             (or (string-match-p "\\.vue\\'" filename)
-;;                 (apply orig-fn filename args)))))
-
 (after! lsp-mode
     ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
     (lsp-dependency 'typescript
@@ -267,9 +193,6 @@
 ;; Corfu.
 (after! corfu
     (setq corfu-auto-delay 0.2))
-
-;; Local config (not in repo).
-(load! "+local.el")
 
 ;; Apheleia formatters.
 ;; (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
@@ -326,3 +249,17 @@
 (add-variable-watcher 'apheleia-mode-alist #'apheleia-mode-alist-remove-after-init)
 
 (use-package! uv)
+
+;; Make sure that the path is the same that in a shell.
+(use-package! exec-path-from-shell
+    :init
+    (progn
+        (message "exec-path-from-shell init!")
+        (when (or (memq window-system '(mac ns x pgtk))
+                  (daemonp))
+            (progn
+                (message "window-system!!")
+                (exec-path-from-shell-initialize)))))
+
+;; Local config (not in repo).
+(load! "+local.el")
