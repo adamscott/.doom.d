@@ -75,68 +75,75 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-;; Disable Apheleia for emacs-lisp.
-(add-to-list '+format-on-save-disabled-modes 'emacs-lisp-mode)
+;; HERE AS A REMINDER.
+;; (add-to-list '+format-on-save-disabled-modes 'emacs-lisp-mode)
 
 ;; Default shell for Emacs.
 (if (featurep :system 'macos) 
     (progn
-        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh")))
-        (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))
-        (setq doom-symbol-font "Apple Symbols")))
+      (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v zsh")))
+      (setq shell-file-name (string-trim (shell-command-to-string "/usr/bin/env -S command -v bash")))
+      (setq doom-symbol-font "Apple Symbols")))
 
 ;; Relative display lines.
 (setq display-line-numbers-type 'relative)
 
 ;; Debugging.
 (after! dap-mode
-    (require 'dap-lldb)
-    (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
+        (require 'dap-lldb)
+        (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
 ;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
 
 ;; Maximize on startup.
-(add-hook! 'emacs-startup-hook
-    (set-frame-parameter frame-initial-frame 'fullscreen 'maximized))
+(add-hook! 'emacs-startup-hook :append (lambda ()
+                                         "Set as fullscreen and maximized."
+                                         (set-frame-parameter frame-initial-frame 'fullscreen-restore 'maximized)
+                                         (set-frame-parameter frame-initial-frame 'fullscreen 'fullboth)))
 
 ;; Lisp formatting
-(setq lisp-indent-function #'common-lisp-indent-function)
+;; (use-package! thunk)
+(defun +asc/lisp-indent-function (&rest args)
+  "Apply sly-common-lisp-indent-function, but load it only JIT."
+  (use-package sly)
+  (apply #'sly-common-lisp-indent-function args))
+(setq lisp-indent-function '+asc/lisp-indent-function)
 
 ;; Add `SPC o c` shortcut.
 (defun +asc-compilation/toggle ()
-    (interactive)
-    (let ((buffer (get-buffer "*compilation*")))
-        (if buffer
-            (if (+popup-buffer-p buffer)
-                (+popup/close (get-buffer-window buffer) 'force)
-                (+popup-buffer buffer)
-                (let ((window (get-buffer-window buffer)))
-                    (if window
-                        (select-window window)
-                        (message "couldn't find window of *compilation*"))))
-            (message "*compilation* doesn't exist yet."))))
+  (interactive)
+  (let ((buffer (get-buffer "*compilation*")))
+    (if buffer
+        (if (+popup-buffer-p buffer)
+            (+popup/close (get-buffer-window buffer) 'force)
+            (+popup-buffer buffer)
+            (let ((window (get-buffer-window buffer)))
+              (if window
+                  (select-window window)
+                  (message "couldn't find window of *compilation*"))))
+        (message "*compilation* doesn't exist yet."))))
 
 (map! :leader
-    (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
+      (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
 
 ;; clangd
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
 (map! :after lsp-mode
-    :map lsp-mode-map
-    :leader
-    :desc "Activates the signature"
-    "c SPC" #'lsp-signature-activate)
+      :map lsp-mode-map
+      :leader
+      :desc "Activates the signature"
+      "c SPC" #'lsp-signature-activate)
 
 (defun asc-add-jsonc-auto-modes ()
-    (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
-                           ("tsconfig.*?\\.json\\'" . jsonc-mode)
-                           ("jsconfig.*?\\.json\\'" . jsonc-mode))))
-        (dolist (auto-mode auto-modes)
-            (setq auto-mode-alist (delete auto-mode auto-mode-alist))
-            (add-to-list 'auto-mode-alist auto-mode))))
+  (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
+                      ("tsconfig.*?\\.json\\'" . jsonc-mode)
+                      ("jsconfig.*?\\.json\\'" . jsonc-mode))))
+    (dolist (auto-mode auto-modes)
+      (setq auto-mode-alist (delete auto-mode auto-mode-alist))
+      (add-to-list 'auto-mode-alist auto-mode))))
 
 (asc-add-jsonc-auto-modes)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-mode))
@@ -148,9 +155,9 @@
 
 ;; Override the new hooks by json-mode.
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
-    (run-at-time "0.01s" nil
-        (lambda ()
-            (asc-add-jsonc-auto-modes))))
+  (run-at-time "0.01s" nil
+               (lambda ()
+                 (asc-add-jsonc-auto-modes))))
 (add-variable-watcher 'json-mode-auto-mode-list #'asc-json-mode-auto-mode-list-variable-watcher)
 
 ;; Add SCons files to 'auto-mode-alist.
@@ -162,104 +169,107 @@
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode)) ;; Add gdscript-formatter.
 
 (after! lsp-mode
-    ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
-    (lsp-dependency 'typescript
-        '(:npm :package "typescript@<7"
-             :path "tsserver")))
+        ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
+        (lsp-dependency 'typescript
+                        '(:npm :package "typescript@<7"
+                          :path "tsserver")))
 
 ;; Make sure these classic modes stay.
 (add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
 (add-to-list 'major-mode-remap-alist '(c++-mode . c++-mode))
-(add-to-list 'major-mode-remap-alist 
-    '(c-or-c++-mode . c-or-c++-mode))
+(add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-mode))
+
+;; Set default lisp/elisp formatter.
+;; (add-hook! 'apheleia-global-mode-hook :append (lambda ()
+;;                                                 "Add lisp to 'apheleia-mode-alist"
+;;                                                 (with-eval-after-load 'apheleia
+;;                                                   (setf (alist-get 'emacs-lisp-mode apheleia-mode-alist) '(lisp-indent))
+;;                                                   (setf (alist-get 'common-lisp-mode apheleia-mode-alist) '(lisp-indent)))))
 
 ;; Dired custom maps.
 (map! :map dired-mode-map
-    "C-Q" #'dired-do-query-replace-regexp)
+      "C-Q" #'dired-do-query-replace-regexp)
+
+;; Bind :x to save and close the current buffer (instead of save and quit.)
+(defun +asc/save-and-close-window-and-maybe-buffer ()
+  "Save and close a window. If the buffer is now unused, close the buffer too."
+  (progn
+    ))
+(after! evil
+        (evil-ex-define-cmd "x" '+asc/save-and-close-window-and-maybe-buffer))
 
 ;; Sidecar-locals.
 (use-package! sidecar-locals
-    :init
-    (sidecar-locals-mode))
+              :init
+              (sidecar-locals-mode))
 
 ;; mise.el
 (use-package! mise
-    :init
-    (global-mise-mode))
+              :init
+              (global-mise-mode))
 
 ;; Fish.
 (use-package! fish-mode)
 
 ;; Corfu.
 (after! corfu
-    (setq corfu-auto-delay 0.2))
+        (setq corfu-auto-delay 0.2))
 
 ;; Apheleia formatters.
-;; (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
-;; (set-formatter! 'djlint-jinja `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "--profile=jinja" "-" "--reformat") :modes '(web-mode))
-(set-formatter! 'djlint (lambda ()
-                            "Return the djlint parameters."
-                            ))
 (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
 (set-formatter! 'djlint-jinja `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "--profile=jinja" "-" "--reformat") :modes '(web-mode))
 (set-formatter! 'gdscript-formatter '("gdscript-formatter" "--reorder-code" "--stdout") :modes '(gdscript-mode gdscript-ts-mode))
-;; (set-formatter! 'eslint `(,@(let ((eslint-command '("eslint" "--stdin" "--stdin-filename" filepath "--fix-dry-run" "--format" "json")))
-;;                                 (if (executable-find "eslint")
-;;                                     eslint-command
-;;                                     (if (executable-find "pnpm")
-;;                                         (append '("pnpm" "exec") eslint-command)
-;;                                         (append '("npm" "exec") eslint-command)))))
-;;   :modes '(javascript-mode javascript-ts-mode typescript-mode typescript-ts-mode))
 (set-formatter! 'prettier-vue '("apheleia-npx" "prettier" "--stdin-filepath" filepath "--parser=vue"
-                                   (when apheleia-formatters-respect-indent-level
-                                       (unless
-                                           (or
-                                               (cl-loop for file in
-                                                   '(".prettierrc" ".prettierrc.json"
-                                                        ".prettierrc.yml" ".prettierrc.yaml"
-                                                        ".prettierrc.json5" ".prettierrc.js"
-                                                        "prettier.config.js" ".prettierrc.mjs"
-                                                        "prettier.config.mjs" ".prettierrc.cjs"
-                                                        "prettier.config.cjs" ".prettierrc.toml")
-                                                   if
-                                                   (locate-dominating-file default-directory file)
-                                                   return t)
-                                               (when-let*
-                                                   ((pkg
-                                                        (locate-dominating-file default-directory
-                                                            "package.json")))
-                                                   (require 'json)
-                                                   (let ((json-key-type 'alist))
-                                                       (assq 'prettier
-                                                           (json-read-file
-                                                               (expand-file-name "package.json" pkg))))))
-                                           (apheleia-formatters-indent "--use-tabs" "--tab-width")))))
+                                (when apheleia-formatters-respect-indent-level
+                                  (unless
+                                      (or
+                                       (cl-loop
+                                        for file in
+                                        '(".prettierrc" ".prettierrc.json"
+                                          ".prettierrc.yml" ".prettierrc.yaml"
+                                          ".prettierrc.json5" ".prettierrc.js"
+                                          "prettier.config.js" ".prettierrc.mjs"
+                                          "prettier.config.mjs" ".prettierrc.cjs"
+                                          "prettier.config.cjs" ".prettierrc.toml")
+                                        if (locate-dominating-file default-directory file)
+                                        return t)
+                                       (when-let* ((pkg (locate-dominating-file default-directory "package.json")))
+                                                  (progn
+                                                    (require 'json)
+                                                    (let ((json-key-type 'alist))
+                                                      (assq 'prettier (json-read-file
+                                                                       (expand-file-name "package.json" pkg)))))))
+                                    (apheleia-formatters-indent "--use-tabs" "--tab-width")))))
 
 (defun apheleia-mode-alist-remove-after-init (symbol newval operation where)
-    "Remove some values from 'apheleia-formatters"
-    (when (and (eq operation 'set) (not (eq (assq 'gdscript-mode newval) nil)))
-        (remove-variable-watcher symbol #'apheleia-mode-alist-remove-after-init)
-        (let ((finalvalue (assq-delete-all 'gdscript-mode (assq-delete-all 'gdscript-ts-mode newval))))
-            (progn
-                (add-to-list 'finalvalue '(gdscript-mode . gdscript-formatter))
-                (add-to-list 'finalvalue '(gdscript-ts-mode . gdscript-formatter))
-                (run-with-timer 0 nil
-                    (lambda ()
-                        (set symbol finalvalue)))))))
+  "Remove some values from 'apheleia-formatters"
+  (when (and (eq operation 'set) (not (eq (assq 'gdscript-mode newval) nil)))
+    (remove-variable-watcher symbol #'apheleia-mode-alist-remove-after-init)
+    (let ((finalvalue (assq-delete-all 'gdscript-mode (assq-delete-all 'gdscript-ts-mode newval))))
+      (progn
+        (add-to-list 'finalvalue '(gdscript-mode . gdscript-formatter))
+        (add-to-list 'finalvalue '(gdscript-ts-mode . gdscript-formatter))
+        (run-with-timer 0 nil
+                        (lambda ()
+                          (set symbol finalvalue)))))))
 (add-variable-watcher 'apheleia-mode-alist #'apheleia-mode-alist-remove-after-init)
 
 (use-package! uv)
 
 ;; Make sure that the path is the same that in a shell.
 (use-package! exec-path-from-shell
-    :init
-    (progn
-        (message "exec-path-from-shell init!")
-        (when (or (memq window-system '(mac ns x pgtk))
-                  (daemonp))
-            (progn
-                (message "window-system!!")
-                (exec-path-from-shell-initialize)))))
+              :init
+              (progn
+                (message "exec-path-from-shell init!")
+                (when (or (memq window-system '(mac ns x pgtk))
+                          (daemonp))
+                  (progn
+                    (message "window-system!!")
+                    (exec-path-from-shell-initialize)))))
+
+(after! projectile
+        (let ((home-dir (expand-file-name "~")))
+          (add-to-list 'projectile-ignored-projects home-dir)))
 
 ;; Local config (not in repo).
 (load! "+local.el")
