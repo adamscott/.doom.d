@@ -90,8 +90,8 @@
 
 ;; Debugging.
 (after! dap-mode
-        (require 'dap-lldb)
-        (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
+    (require 'dap-lldb)
+  (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
 ;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
@@ -102,14 +102,6 @@
                                          (set-frame-parameter frame-initial-frame 'fullscreen-restore 'maximized)
                                          (set-frame-parameter frame-initial-frame 'fullscreen 'fullboth)))
 
-;; Lisp formatting
-;; (use-package! thunk)
-(defun +asc/lisp-indent-function (&rest args)
-  "Apply sly-common-lisp-indent-function, but load it only JIT."
-  (use-package sly)
-  (apply #'sly-common-lisp-indent-function args))
-(setq lisp-indent-function '+asc/lisp-indent-function)
-
 ;; Add `SPC o c` shortcut.
 (defun +asc-compilation/toggle ()
   (interactive)
@@ -117,25 +109,25 @@
     (if buffer
         (if (+popup-buffer-p buffer)
             (+popup/close (get-buffer-window buffer) 'force)
-            (+popup-buffer buffer)
-            (let ((window (get-buffer-window buffer)))
-              (if window
-                  (select-window window)
-                  (message "couldn't find window of *compilation*"))))
-        (message "*compilation* doesn't exist yet."))))
+          (+popup-buffer buffer)
+          (let ((window (get-buffer-window buffer)))
+            (if window
+                (select-window window)
+              (message "couldn't find window of *compilation*"))))
+      (message "*compilation* doesn't exist yet."))))
 
-(map! :leader
-      (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
+(map! :leader (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
 
 ;; clangd
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
-(map! :after lsp-mode
-      :map lsp-mode-map
-      :leader
-      :desc "Activates the signature"
-      "c SPC" #'lsp-signature-activate)
+(map!
+ :after lsp-mode
+ :map lsp-mode-map
+ :leader
+ :desc "Activates the signature"
+ "c SPC" #'lsp-signature-activate)
 
 (defun asc-add-jsonc-auto-modes ()
   (let ((auto-modes '(("\\.jsonc\\'" . jsonc-mode)
@@ -169,51 +161,51 @@
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode)) ;; Add gdscript-formatter.
 
 (after! lsp-mode
-        ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
-        (lsp-dependency 'typescript
-                        '(:npm :package "typescript@<7"
-                          :path "tsserver")))
+    ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
+    (lsp-dependency 'typescript
+     '(:npm :package "typescript@<7"
+       :path "tsserver")))
 
 ;; Make sure these classic modes stay.
 (add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
 (add-to-list 'major-mode-remap-alist '(c++-mode . c++-mode))
 (add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-mode))
 
-;; Set default lisp/elisp formatter.
-;; (add-hook! 'apheleia-global-mode-hook :append (lambda ()
-;;                                                 "Add lisp to 'apheleia-mode-alist"
-;;                                                 (with-eval-after-load 'apheleia
-;;                                                   (setf (alist-get 'emacs-lisp-mode apheleia-mode-alist) '(lisp-indent))
-;;                                                   (setf (alist-get 'common-lisp-mode apheleia-mode-alist) '(lisp-indent)))))
-
 ;; Dired custom maps.
 (map! :map dired-mode-map
       "C-Q" #'dired-do-query-replace-regexp)
 
 ;; Bind :x to save and close the current buffer (instead of save and quit.)
-(defun +asc/save-and-close-window-and-maybe-buffer ()
+(evil-define-command +asc/save-and-close-window-and-maybe-buffer ()
   "Save and close a window. If the buffer is now unused, close the buffer too."
   (progn
-    ))
+    (save-buffer)
+    (if (and (> (count-windows) 1)
+             (length< (get-buffer-window-list) 2))
+        (kill-buffer-and-window)
+      (quit-window))))
+
 (after! evil
-        (evil-ex-define-cmd "x" '+asc/save-and-close-window-and-maybe-buffer))
+    (evil-ex-define-cmd "x" #'+asc/save-and-close-window-and-maybe-buffer))
+
+(setq lisp-indent-function 'common-lisp-indent-function)
 
 ;; Sidecar-locals.
 (use-package! sidecar-locals
-              :init
-              (sidecar-locals-mode))
+  :init
+  (sidecar-locals-mode))
 
 ;; mise.el
 (use-package! mise
-              :init
-              (global-mise-mode))
+  :init
+  (global-mise-mode))
 
 ;; Fish.
 (use-package! fish-mode)
 
 ;; Corfu.
 (after! corfu
-        (setq corfu-auto-delay 0.2))
+    (setq corfu-auto-delay 0.15))
 
 ;; Apheleia formatters.
 (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
@@ -224,21 +216,21 @@
                                   (unless
                                       (or
                                        (cl-loop
-                                        for file in
-                                        '(".prettierrc" ".prettierrc.json"
-                                          ".prettierrc.yml" ".prettierrc.yaml"
-                                          ".prettierrc.json5" ".prettierrc.js"
-                                          "prettier.config.js" ".prettierrc.mjs"
-                                          "prettier.config.mjs" ".prettierrc.cjs"
-                                          "prettier.config.cjs" ".prettierrc.toml")
-                                        if (locate-dominating-file default-directory file)
-                                        return t)
+                                             for file in
+                                             '(".prettierrc" ".prettierrc.json"
+                                               ".prettierrc.yml" ".prettierrc.yaml"
+                                               ".prettierrc.json5" ".prettierrc.js"
+                                               "prettier.config.js" ".prettierrc.mjs"
+                                               "prettier.config.mjs" ".prettierrc.cjs"
+                                               "prettier.config.cjs" ".prettierrc.toml")
+                                             if (locate-dominating-file default-directory file)
+                                             return t)
                                        (when-let* ((pkg (locate-dominating-file default-directory "package.json")))
-                                                  (progn
-                                                    (require 'json)
-                                                    (let ((json-key-type 'alist))
-                                                      (assq 'prettier (json-read-file
-                                                                       (expand-file-name "package.json" pkg)))))))
+                                         (progn
+                                           (require 'json)
+                                           (let ((json-key-type 'alist))
+                                             (assq 'prettier (json-read-file
+                                                              (expand-file-name "package.json" pkg)))))))
                                     (apheleia-formatters-indent "--use-tabs" "--tab-width")))))
 
 (defun apheleia-mode-alist-remove-after-init (symbol newval operation where)
@@ -258,18 +250,37 @@
 
 ;; Make sure that the path is the same that in a shell.
 (use-package! exec-path-from-shell
-              :init
-              (progn
-                (message "exec-path-from-shell init!")
-                (when (or (memq window-system '(mac ns x pgtk))
-                          (daemonp))
-                  (progn
-                    (message "window-system!!")
-                    (exec-path-from-shell-initialize)))))
+  :init
+  (progn
+    (when (or (memq window-system '(mac ns x pgtk))
+              (daemonp))
+      (progn
+        (exec-path-from-shell-initialize)))))
 
 (after! projectile
-        (let ((home-dir (expand-file-name "~")))
-          (add-to-list 'projectile-ignored-projects home-dir)))
+    (let ((home-dir (expand-file-name "~")))
+      (add-to-list 'projectile-ignored-projects home-dir)))
 
 ;; Local config (not in repo).
 (load! "+local.el")
+
+;; (quote (hi im gosu
+;;         the best vayne player))
+
+;; '(i am the phantom of
+;;   the opera)
+
+;; '((angel of music
+;;    hide no longer))
+
+;; (backquote (past the point
+;;             no return
+;;             ... the final chapter))
+
+;; `(fee fi fo
+;;   fum)
+
+;; ;; should indent it like a function.
+;; (iamafunction arg1
+;;               arg2
+;;               arg3)
