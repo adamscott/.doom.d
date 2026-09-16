@@ -96,17 +96,6 @@
 ;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
 
-;; Lisp.
-(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) 
-           :append
-           (lambda ()
-             "Setup lisp-mode"
-             (setq lisp-body-indent 2)
-             (setq lisp-indent-offset nil)))
-
-(after! cl-indent
-  (setq lisp-indent-function 'common-lisp-indent-function))
-
 ;; Maximize on startup.
 (add-hook! 'emacs-startup-hook :append (lambda ()
                                          "Set as fullscreen and maximized."
@@ -271,16 +260,9 @@
     (setenv asc/--env-var-name-inside-emacs nil)
     return-value))
 
-(add-hook! 'emacs-startup-hook :append (lambda ()
-                                         "Wrap spawned processes with env var `INSIDE_EMACS=1`"
-                                         (dolist (it '(call-process make-process start-process))
-                                           (add-function
-                                            :around (symbol-function it)
-                                            #'asc/--advice-around-wrap-inside-emacs))))
-
-
 (after! envrc
-  (dolist (it '(envrc--direnv-export envrc--run-direnv))
+  (dolist (it '(envrc--direnv-export envrc--run-direnv call-process make-process start-process))
+    (trace-function it)
     (add-function
      :around (symbol-function it)
      #'asc/--advice-around-wrap-inside-emacs)))
