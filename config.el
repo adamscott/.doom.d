@@ -90,11 +90,22 @@
 
 ;; Debugging.
 (after! dap-mode
-    (require 'dap-lldb)
+  (require 'dap-lldb)
   (setq dap-lldb-debug-program '("/usr/bin/lldb-dap")))
 
 ;; Mouse scroll.
 (setq mouse-wheel-tilt-scroll t)
+
+;; Lisp.
+(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) 
+           :append
+           (lambda ()
+             "Setup lisp-mode"
+             (setq lisp-body-indent 2)
+             (setq lisp-indent-offset nil)))
+
+(after! cl-indent
+  (setq lisp-indent-function 'common-lisp-indent-function))
 
 ;; Maximize on startup.
 (add-hook! 'emacs-startup-hook :append (lambda ()
@@ -120,6 +131,7 @@
 
 ;; clangd
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
+(after! lsp-pyright (set-lsp-priority! 'pyright 3))
 
 ;; Alternative activate code signature (LSP) (C-S-SPC doesn't work on macOS).
 (map!
@@ -161,10 +173,10 @@
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode)) ;; Add gdscript-formatter.
 
 (after! lsp-mode
-    ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
-    (lsp-dependency 'typescript
-     '(:npm :package "typescript@<7"
-       :path "tsserver")))
+  ;; https://github.com/emacs-lsp/lsp-mode/issues/4313
+  (lsp-dependency 'typescript
+                  '(:npm :package "typescript@<7"
+                    :path "tsserver")))
 
 ;; Make sure these classic modes stay.
 (add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
@@ -186,9 +198,10 @@
       (quit-window))))
 
 (after! evil
-    (evil-ex-define-cmd "x" #'+asc/save-and-close-window-and-maybe-buffer))
+  (evil-ex-define-cmd "x" #'+asc/save-and-close-window-and-maybe-buffer))
 
-(setq lisp-indent-function 'common-lisp-indent-function)
+(after! envrc
+  (setq envrc-async t))
 
 ;; Sidecar-locals.
 (use-package! sidecar-locals
@@ -205,7 +218,7 @@
 
 ;; Corfu.
 (after! corfu
-    (setq corfu-auto-delay 0.15))
+  (setq corfu-auto-delay 0.15))
 
 ;; Apheleia formatters.
 (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
@@ -216,15 +229,15 @@
                                   (unless
                                       (or
                                        (cl-loop
-                                             for file in
-                                             '(".prettierrc" ".prettierrc.json"
-                                               ".prettierrc.yml" ".prettierrc.yaml"
-                                               ".prettierrc.json5" ".prettierrc.js"
-                                               "prettier.config.js" ".prettierrc.mjs"
-                                               "prettier.config.mjs" ".prettierrc.cjs"
-                                               "prettier.config.cjs" ".prettierrc.toml")
-                                             if (locate-dominating-file default-directory file)
-                                             return t)
+                                        for file in
+                                        '(".prettierrc" ".prettierrc.json"
+                                          ".prettierrc.yml" ".prettierrc.yaml"
+                                          ".prettierrc.json5" ".prettierrc.js"
+                                          "prettier.config.js" ".prettierrc.mjs"
+                                          "prettier.config.mjs" ".prettierrc.cjs"
+                                          "prettier.config.cjs" ".prettierrc.toml")
+                                        if (locate-dominating-file default-directory file)
+                                        return t)
                                        (when-let* ((pkg (locate-dominating-file default-directory "package.json")))
                                          (progn
                                            (require 'json)
@@ -246,6 +259,32 @@
                           (set symbol finalvalue)))))))
 (add-variable-watcher 'apheleia-mode-alist #'apheleia-mode-alist-remove-after-init)
 
+;; Make sure that the INSIDE_EMACS env variable is set to 1.
+(defvar asc/--env-var-name-inside-emacs 
+  "Defines the variable name to signify that the environment is called from Emacs."
+  "INSIDE_EMACS")
+(defun asc/--advice-around-wrap-inside-emacs (old-function &rest arguments)
+  "Ensure the run-direnv call has the env var `INSIDE_EMACS=1`."
+  (let ((return-value nil))
+    (setenv asc/--env-var-name-inside-emacs "1")
+    (setq return-value (apply old-function arguments))
+    (setenv asc/--env-var-name-inside-emacs nil)
+    return-value))
+
+(add-hook! 'emacs-startup-hook :append (lambda ()
+                                         "Wrap spawned processes with env var `INSIDE_EMACS=1`"
+                                         (dolist (it '(call-process make-process start-process))
+                                           (add-function
+                                            :around (symbol-function it)
+                                            #'asc/--advice-around-wrap-inside-emacs))))
+
+
+(after! envrc
+  (dolist (it '(envrc--direnv-export envrc--run-direnv))
+    (add-function
+     :around (symbol-function it)
+     #'asc/--advice-around-wrap-inside-emacs)))
+
 (use-package! uv)
 
 ;; Make sure that the path is the same that in a shell.
@@ -255,11 +294,14 @@
     (when (or (memq window-system '(mac ns x pgtk))
               (daemonp))
       (progn
-        (exec-path-from-shell-initialize)))))
+        (exec-path-from-shell-initialize)
+        (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
+          (add-to-list 'exec-path-from-shell-variables var))
+        (setenv asc/--env-var-name-inside-emacs "1")))))
 
 (after! projectile
-    (let ((home-dir (expand-file-name "~")))
-      (add-to-list 'projectile-ignored-projects home-dir)))
+  (let ((home-dir (expand-file-name "~")))
+    (add-to-list 'projectile-ignored-projects home-dir)))
 
 ;; Local config (not in repo).
 (load! "+local.el")
