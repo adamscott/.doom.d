@@ -194,13 +194,9 @@
   "Reloads direnv if needed."
   (unless before-check
     (setf before-check t)
-    ;; (message "+asc/--advice-before-direnv-export-reload-if-needed called")
-    ;; (message (format "default-directory: %s" default-directory))
-    ;; (debug)
-    ;; (message (format "self: %s, current buffers: %s" (current-buffer) (envrc--mode-buffers)))
-    (when (member (current-buffer) (envrc--mode-buffers))
+    (when (and (eq (projectile-project-root) default-directory)
+               (member (current-buffer) (envrc--mode-buffers)))
       (message "Launching envrc-reload")
-      ;; (envrc--get-current-env-or-run-direnv t)
       (setf envrc--env-dir default-directory)
       (envrc-reload))))
 
@@ -210,10 +206,6 @@
   (advice-add 'envrc--get-current-env-or-run-direnv
               :before
               #'+asc/--advice-before--envrc--run-direnv--reload-if-needed))
-;; (add-hook! prog-mode-hook
-;;   (message "envrc-mode-hook!")
-;;   (envrc--get-current-env-or-run-direnv)
-;;   )
 
 
 ;; Sidecar-locals.
@@ -272,37 +264,6 @@
                           (set symbol finalvalue)))))))
 (add-variable-watcher 'apheleia-mode-alist #'apheleia-mode-alist-remove-after-init)
 
-;; Make sure that the INSIDE_EMACS env variable is set to 1.
-;; (setf +asc/--env-var-name-inside-emacs "INSIDE_EMACS")
-;; (defun +asc/--advice-around-wrap-inside-emacs (old-function &rest arguments)
-;;   "Ensure the call has the env var `INSIDE_EMACS=1`."
-;;   (let ((return-value nil))
-;;     ;; (setenv +asc/--env-var-name-inside-emacs "1")
-;;     ;; (message (format "inside_emacs? (before) %s" (getenv +asc/--env-var-name-inside-emacs)))
-;;     ;;(setq return-value (apply old-function arguments))
-;;     ;; (message (format "inside_emacs? (after) %s" (getenv +asc/--env-var-name-inside-emacs)))
-;;     ;;(setenv +asc/--env-var-name-inside-emacs nil)
-;;     ;; (message (format "inside_emacs? (after after) %s" (getenv +asc/--env-var-name-inside-emacs)))
-;;     return-value))
-
-;; (make-local-variable '+asc/--watcher-envrc--direnv-global-process-environment--recursive-guard)
-;; (setq-default +asc/--watcher-envrc--direnv-global-process-environment--recursive-guard nil)
-;; (defun +asc/--watcher-envrc--direnv-global-process-environment (symbol newval operation where)
-;;   "Append INSIDE_EMACS when it gets changed."
-;;   (message "inside watcher")
-
-;;   (let ((recursive-guard (buffer-local-value '+asc/--watcher-envrc--direnv-global-process-environment--recursive-guard (current-buffer))))
-;;     (if (or recursive-guard
-;;             (eq newval nil))
-;;         nil
-;;       (progn
-;;         (setf recursive-guard t)
-;;         (add-to-list symbol "INSIDE_EMACS=1")
-;;         (setf recursive-guard nil)))))
-
-;; (after! envrc
-;;   (add-variable-watcher 'envrc--direnv-global-process-environment #'+asc/--watcher-envrc--direnv-global-process-environment))
-
 (add-hook! 'doom-after-init-hook
   (lambda ()
     "Update process-environment default value."
@@ -320,9 +281,7 @@
       (progn
         (exec-path-from-shell-initialize)
         (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
-          (add-to-list 'exec-path-from-shell-variables var))
-        ;; (setenv +asc/--env-var-name-inside-emacs "1")
-        ))))
+          (add-to-list 'exec-path-from-shell-variables var))))))
 
 (after! projectile
   (let ((home-dir (expand-file-name "~")))
