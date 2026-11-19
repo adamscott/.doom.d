@@ -118,6 +118,12 @@
 
 (map! :leader (:prefix "o" :desc "Toggle compilation popup" "c" #'+asc-compilation/toggle))
 
+;; Add forward to mouse-5 and backward to mouse-4
+(map!
+ :g
+ "<mouse-4>" #'better-jumper-jump-backward
+ "<mouse-5>" #'better-jumper-jump-forward)
+
 ;; clangd
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
 
@@ -144,6 +150,7 @@
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.cts\\'" . typescript-mode))
 (add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.typst\\'" . typst-ts-mode))
 
 ;; Override the new hooks by json-mode.
 (defun asc-json-mode-auto-mode-list-variable-watcher (_symbol _new-val _operation _where)
@@ -225,6 +232,14 @@
 (after! corfu
   (setq corfu-auto-delay 0.15))
 
+;; Dape.
+(after! dape
+  (add-hook! dape-stopped-hook
+             :append
+             (lambda ()
+               "Reload buffer."
+               (revert-buffer))))
+
 ;; Apheleia formatters.
 (set-formatter! 'djlint `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "-" "--reformat") :modes '(web-mode))
 (set-formatter! 'djlint-jinja `(,@(if (executable-find "djlint") '("djlint") '("uv" "run" "djlint")) "--profile=jinja" "-" "--reformat") :modes '(web-mode))
@@ -286,6 +301,28 @@
 (after! projectile
   (let ((home-dir (expand-file-name "~")))
     (add-to-list 'projectile-ignored-projects home-dir)))
+
+;; Display the current function
+(add-hook! 'doom-after-init-hook
+  (lambda ()
+    "Init which-function-mode."
+    (which-function-mode t)))
+
+;; Typst
+(use-package! typst-preview
+  :init
+  (setq typst-preview-autostart t) ; start preview automatically when typst-preview-mode is activated
+  (setq typst-preview-open-browser-automatically t) ; open browser automatically when typst-preview-start is run
+  (setq typst-preview-browser xwidget")
+
+  :custom
+  (typst-preview-browser "default") 	; this is the default option; other options are `eaf-browser' or `xwidget'.
+  (typst-preview-invert-colors "auto")	; invert colors depending on system theme
+  (typst-preview-executable "tinymist") ; path to tinymist binary (relative or absolute)
+  (typst-preview-partial-rendering t)   ; enable partial rendering
+
+  :config
+  (define-key typst-preview-mode-map (kbd "C-c C-j") 'typst-preview-send-position))
 
 ;; Local config (not in repo).
 (load! "+local.el")
