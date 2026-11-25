@@ -173,11 +173,6 @@
                   '(:npm :package "typescript@<7"
                     :path "tsserver")))
 
-;; Make sure these classic modes stay.
-(add-to-list 'major-mode-remap-alist '(c-mode . c-mode))
-(add-to-list 'major-mode-remap-alist '(c++-mode . c++-mode))
-(add-to-list 'major-mode-remap-alist '(c-or-c++-mode . c-or-c++-mode))
-
 ;; Dired custom maps.
 (map! :map dired-mode-map
       "C-Q" #'dired-do-query-replace-regexp)
@@ -308,12 +303,28 @@
     "Init which-function-mode."
     (which-function-mode t)))
 
+;; Eglot
+(use-package! eglot
+  :ensure nil
+  :hook ((typst-ts-mode . eglot-ensure)
+         (cmake-ts-mode . eglot-ensure)
+         (c-ts-mode . eglot-ensure))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(typst-ts-mode . ("tinymist" "lsp"))
+               '(cmake-ts-mode . ("neocmakelsp" "stdio"))))
+
+;; Hunspell
+(after! ispell
+  (setq ispell-program-name "hunspell"
+        ispell-dictionary "en_CA"))
+
 ;; Typst
 (use-package! typst-preview
   :init
   (setq typst-preview-autostart t) ; start preview automatically when typst-preview-mode is activated
   (setq typst-preview-open-browser-automatically t) ; open browser automatically when typst-preview-start is run
-  (setq typst-preview-browser xwidget")
+  (setq typst-preview-browser "xwidget")
 
   :custom
   (typst-preview-browser "default") 	; this is the default option; other options are `eaf-browser' or `xwidget'.
